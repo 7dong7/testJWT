@@ -1,6 +1,8 @@
 package org.myjwt.springjwt.security;
 
 import lombok.RequiredArgsConstructor;
+import org.myjwt.springjwt.jwt.JWTFilter;
+import org.myjwt.springjwt.jwt.JWTUtil;
 import org.myjwt.springjwt.jwt.LoginFilter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -20,6 +22,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 public class SecurityConfig {
 
     private final AuthenticationConfiguration authenticationConfiguration;
+    private final JWTUtil jwtUtil;
 
     @Bean
     public BCryptPasswordEncoder bCryptPasswordEncoder() {
@@ -49,8 +52,11 @@ public class SecurityConfig {
         // addFilterAt -> 원하는 자리(대체), addFilterBefore -> 원하는 자리 전에, addFilterAfter -> 원하는 자리 뒤에
             // 파라미터(등록 필터, 등록 위치)
         http
-                .addFilterAt(new LoginFilter(authenticationManager(authenticationConfiguration)), UsernamePasswordAuthenticationFilter.class);
-
+                .addFilterAt(new LoginFilter(authenticationManager(authenticationConfiguration), jwtUtil),
+                             UsernamePasswordAuthenticationFilter.class);
+            // 필터 하나 더 추가
+        http
+                .addFilterBefore(new JWTFilter(jwtUtil), LoginFilter.class);
 
 
         // 세션 설정  session 무상태 유지
