@@ -23,6 +23,7 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
     private final AuthenticationManager authenticationManager;
     private final JWTUtil jwtUtil;
 
+    // 커스텀 로그인 인증 처리  // UsernamePasswordAuthenticationFilter 구현
     @Override
     public Authentication attemptAuthentication(HttpServletRequest request, HttpServletResponse response) throws AuthenticationException {
 
@@ -30,7 +31,7 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
         String password = obtainPassword(request);
 
         System.out.println("username = " + username);
-        
+        // (미인증) 인증 토큰 생성
         UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(username, password, null);
 
         return authenticationManager.authenticate(authToken);
@@ -40,7 +41,9 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
     @Override
     protected void successfulAuthentication(HttpServletRequest request, HttpServletResponse response,
                                             FilterChain chain, Authentication authentication) throws IOException, ServletException {
-
+        // Provider 인증후 만든 인증토큰 UsernamePasswordAuthenticationToken ==  authentication
+    // 관계: UsernamePasswordAuthenticationToken extends (AbstractAuthenticationToken implements Authentication)
+        
         // 인증 객체 유저 확인
         CustomUserDetails customUserDetails = (CustomUserDetails) authentication.getPrincipal();
 

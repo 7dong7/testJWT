@@ -10,11 +10,13 @@ import javax.crypto.spec.SecretKeySpec;
 import java.nio.charset.StandardCharsets;
 import java.util.Date;
 
+// 토큰 검증, 토큰 생성 유틸클래스
 @Component
 public class JWTUtil { //버전 jwt 0.12.3 구현
 
     private SecretKey secretKey;
 
+    // 암호키
     public JWTUtil(@Value("${spring.jwt.secret}") String secret) {
 
         this.secretKey = new SecretKeySpec(secret.getBytes(StandardCharsets.UTF_8), Jwts.SIG.HS256.key().build().getAlgorithm());

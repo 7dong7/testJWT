@@ -19,7 +19,7 @@ public class JWTFilter extends OncePerRequestFilter {
 
     private final JWTUtil jwtUtil;
 
-    // 커스텀 필더
+    // 인가 작업 // header 의 토큰에서 권한을 확인하는 필터
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         
