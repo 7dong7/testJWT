@@ -2,10 +2,12 @@ package org.myjwt.springjwt.jwt;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.myjwt.springjwt.dto.CustomUserDetails;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -18,6 +20,7 @@ import java.util.Collection;
 import java.util.Iterator;
 
 @RequiredArgsConstructor
+// 로그인 필터
 public class LoginFilter extends UsernamePasswordAuthenticationFilter {
 
     private final AuthenticationManager authenticationManager;
@@ -41,23 +44,44 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
     @Override
     protected void successfulAuthentication(HttpServletRequest request, HttpServletResponse response,
                                             FilterChain chain, Authentication authentication) throws IOException, ServletException {
-        // Provider 인증후 만든 인증토큰 UsernamePasswordAuthenticationToken ==  authentication
-    // 관계: UsernamePasswordAuthenticationToken extends (AbstractAuthenticationToken implements Authentication)
         
-        // 인증 객체 유저 확인
-        CustomUserDetails customUserDetails = (CustomUserDetails) authentication.getPrincipal();
+        // == 단일 토큰 ==
+//        // Provider 인증후 만든 인증토큰 UsernamePasswordAuthenticationToken ==  authentication
+//    // 관계: UsernamePasswordAuthenticationToken extends (AbstractAuthenticationToken implements Authentication)
+//
+//        // 인증 객체 유저 확인
+//        CustomUserDetails customUserDetails = (CustomUserDetails) authentication.getPrincipal();
+//
+//        String username = customUserDetails.getUsername();
+//        Collection<? extends GrantedAuthority> authorities = authentication.getAuthorities();
+//        Iterator<? extends GrantedAuthority> iterator = authorities.iterator();
+//        GrantedAuthority auth = iterator.next();
+//
+//        String role = auth.getAuthority();
+//
+//        // 위에서 가져온 정보들을 가지고 jwt 생성
+//        String token = jwtUtil.CreateJwt(username, role, 60*60*10L);
+//
+//        response.addHeader("Authorization", "Bearer " + token);
 
-        String username = customUserDetails.getUsername();
+        // == 다중 토큰 ==
+        
+        // 유저 정보
+        String username = authentication.getName();
+
         Collection<? extends GrantedAuthority> authorities = authentication.getAuthorities();
         Iterator<? extends GrantedAuthority> iterator = authorities.iterator();
         GrantedAuthority auth = iterator.next();
-
         String role = auth.getAuthority();
+        
+        // 토큰 생성
+        String access = jwtUtil.createJwt("access", username, role, 60000000L); // 10 분
+        String refresh = jwtUtil.createJwt("refresh", username, role, 864000000L); // 24시간
 
-        // 위에서 가져온 정보들을 가지고 jwt 생성
-        String token = jwtUtil.CreateJwt(username, role, 60*60*10L);
-
-        response.addHeader("Authorization", "Bearer " + token);
+        //응답 설정
+        response.setHeader("access", access); // access 토큰 헤더
+        response.addCookie(createCookie("refresh", refresh)); // refresh 토큰 쿠키
+        response.setStatus(HttpStatus.OK.value()); // 상태 메시지 200
     }
 
     // 실패시 응답
@@ -65,5 +89,18 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
     protected void unsuccessfulAuthentication(HttpServletRequest request, HttpServletResponse response,
                                               AuthenticationException failed) throws IOException, ServletException {
         response.setStatus(401); // 로그인 실패시 응답 코드
+    }
+
+
+    // 쿠키 생성
+    private Cookie createCookie(String key, String value) {
+
+        Cookie cookie = new Cookie(key, value);
+        cookie.setMaxAge(24*60*60);
+        //cookie.setSecure(true);
+        //cookie.setPath("/");
+        cookie.setHttpOnly(true);
+
+        return cookie;
     }
 }

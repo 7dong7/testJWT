@@ -38,11 +38,29 @@ public class JWTUtil { //버전 jwt 0.12.3 구현
         return Jwts.parser().verifyWith(secretKey).build().parseSignedClaims(token).getPayload().getExpiration().before(new Date());
     }
 
+    // 카데고리 확인 메소드
+    public String getCategory(String token) {
+        return Jwts.parser().verifyWith(secretKey).build().parseSignedClaims(token).getPayload().get("category", String.class);
+    }
+
 
     // ==== 토큰 생성 메소드 ====
-    public String CreateJwt(String username, String role, Long expiredMs) {
+//    public String createJwt(String username, String role, Long expiredMs) {
+//                            // 사용자명        권한           만료시간
+//        return Jwts.builder()
+//                .claim("username", username)
+//                .claim("role", role)
+//                .issuedAt(new Date(System.currentTimeMillis()))
+//                .expiration(new Date(System.currentTimeMillis() + expiredMs))
+//                .signWith(secretKey)
+//                .compact();
+//    }
+
+    // == 다중 토큰 생성 메소드 ==
+    public String createJwt(String category, String username, String role, Long expiredMs) {
                             // 사용자명        권한           만료시간
         return Jwts.builder()
+                .claim("category", category)
                 .claim("username", username)
                 .claim("role", role)
                 .issuedAt(new Date(System.currentTimeMillis()))
