@@ -38,7 +38,7 @@ public class JWTUtil { //버전 jwt 0.12.3 구현
         return Jwts.parser().verifyWith(secretKey).build().parseSignedClaims(token).getPayload().getExpiration().before(new Date());
     }
 
-    // 카데고리 확인 메소드
+    // 카테고리 확인 메소드
     public String getCategory(String token) {
         return Jwts.parser().verifyWith(secretKey).build().parseSignedClaims(token).getPayload().get("category", String.class);
     }
